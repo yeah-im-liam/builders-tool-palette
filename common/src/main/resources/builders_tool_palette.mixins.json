@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "yeah.im.liam.toolpalette.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "minVersion": "0.8",
+  "client": [
+    "AbstractContainerScreenAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

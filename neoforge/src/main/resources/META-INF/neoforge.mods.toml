@@ -24,3 +24,6 @@ type = "required"
 versionRange = "${neoforge_minecraft_range}"
 ordering = "NONE"
 side = "CLIENT"
+
+[[mixins]]
+config = "builders_tool_palette.mixins.json"
