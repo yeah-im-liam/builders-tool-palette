@@ -5,10 +5,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.ComponentPath;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -183,7 +185,13 @@ public final class PaletteScreen extends Screen {
             int slider = i;
             // Drawn as plain panel text; the screen adds the unit after it.
             EditBox field = new EditBox(font, mainX + FIELD_X, mainY + sliderY(i), MAIN_W - FIELD_X, 9,
-                Component.literal(SLIDER_NAMES[i]));
+                Component.literal(SLIDER_NAMES[i])) {
+                @Override
+                public @Nullable ComponentPath nextFocusPath(FocusNavigationEvent event) {
+                    // Arrow keys move between the other controls and never land on a number; a click focuses it.
+                    return event instanceof FocusNavigationEvent.ArrowNavigation ? null : super.nextFocusPath(event);
+                }
+            };
             field.setBordered(false);
             field.setTextColor(Draw.TEXT);
             field.setTextShadow(false);
@@ -359,6 +367,13 @@ public final class PaletteScreen extends Screen {
         if (number != sliderNumber(slider)) {
             setSlider(slider, number / (float) SLIDER_MAX[slider]);
         }
+    }
+
+    /** Up and down in a focused number: one more or one less, kept within the slider's range. */
+    private void nudgeSlider(int slider, int by) {
+        String digits = sliderFields[slider].getValue().replaceAll("[^0-9]", "");
+        int current = digits.isEmpty() ? sliderNumber(slider) : Math.min(Integer.parseInt(digits), SLIDER_MAX[slider]);
+        sliderFields[slider].setValue(Integer.toString(Math.max(0, Math.min(SLIDER_MAX[slider], current + by))));
     }
 
     private int sliderStepCount(int slider) {
@@ -747,6 +762,11 @@ public final class PaletteScreen extends Screen {
     @Override
     public boolean keyPressed(KeyEvent event) {
         if (getFocused() instanceof EditBox box && box.isFocused()) {
+            int slider = Arrays.asList(sliderFields).indexOf(box);
+            if (slider >= 0 && (event.isUp() || event.isDown())) {
+                nudgeSlider(slider, event.isUp() ? 1 : -1);
+                return true;
+            }
             if (event.isEscape() || event.isConfirmation()) {
                 setFocused(null);
                 updateFields();
