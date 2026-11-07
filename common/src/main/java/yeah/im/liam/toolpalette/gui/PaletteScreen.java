@@ -178,7 +178,7 @@ public final class PaletteScreen extends Screen {
         addRenderableWidget(hex);
         for (int i = 0; i < SLIDER_NAMES.length; i++) {
             int slider = i;
-            // Drawn as plain panel text; the screen adds the unit and an underline while hovered or typed in.
+            // Drawn as plain panel text; the screen adds the unit after it.
             EditBox field = new EditBox(font, mainX + FIELD_X, mainY + SLIDER_Y + i * SLIDER_STEP, MAIN_W - FIELD_X, 9,
                 Component.literal(SLIDER_NAMES[i]));
             field.setBordered(false);
@@ -842,10 +842,6 @@ public final class PaletteScreen extends Screen {
             int textWidth = font.width(field.getValue());
             if (!field.isFocused()) {
                 g.text(font, SLIDER_UNITS[i], fx + textWidth, sy, Draw.TEXT, false);
-            }
-            if (field.isFocused() || field.isHovered()) {
-                int underline = Math.max(textWidth + font.width(SLIDER_UNITS[i]), 6);
-                g.fill(fx, sy + 9, fx + underline, sy + 10, field.isFocused() ? Draw.TEXT : 0xFF8B8B8B);
             }
         }
 
