@@ -58,6 +58,16 @@ final class Draw {
         }
     }
 
+    /** A little four-colour painting, like a pack icon: in colour when on, grey when off. */
+    static void packIcon(GuiGraphicsExtractor g, int x, int y, boolean on) {
+        int[] colors = on ? new int[] {0xFFD94B3B, 0xFF4FA83D, 0xFF3F6FD8, 0xFFE8C33A} : new int[] {0xFF6A6A6A, 0xFF9A9A9A, 0xFF7E7E7E, 0xFFB4B4B4};
+        g.outline(x - 1, y - 1, 12, 12, 0xFF000000);
+        g.fill(x, y, x + 5, y + 5, colors[0]);
+        g.fill(x + 5, y, x + 10, y + 5, colors[1]);
+        g.fill(x, y + 5, x + 5, y + 10, colors[2]);
+        g.fill(x + 5, y + 5, x + 10, y + 10, colors[3]);
+    }
+
     /** A colour icon for the inventory buttons: a hue-by-brightness square or three gradient steps. */
     static void icon(GuiGraphicsExtractor g, int x, int y, boolean gradient) {
         if (gradient) {

@@ -4,14 +4,14 @@ A color picker and a gradient helper for finding blocks by color. It works in cr
 
 ## Opening it
 
-- Click the two small buttons in your inventory: beside the recipe book in survival, and on the left of the creative inventory.
+- Click the two small buttons on the left of your inventory, in survival or creative (in survival they make way while the recipe book is open).
 - Or set the "Open Color Picker" and "Open Gradient Helper" keys under Controls (they start unbound).
 
 Both tools share one screen. A searchable list of every block, sorted by color, sits on the right, and your hotbar sits at the bottom.
 
 ## Color Picker
 
-- Pick a color with the saturation/brightness square and the hue bar, the R G B and H S V sliders, or a hex code.
+- Pick a color with the saturation/brightness square and the hue bar, the R G B and H S V sliders, or a hex code. Each slider has a number box for typing exact values (R G B 0-255, H 0-360, S V 0-100).
 - The eyedropper slot takes the color of any block or item you put in it.
 - "Similar blocks" shows the 24 blocks closest to that color.
 
@@ -30,6 +30,10 @@ The F, S, O and T buttons narrow the suggestions in both tools:
 - **Opaque:** no see-through blocks
 - **Same Texture:** only blocks that look the same on every side
 
+## Texture pack colors
+
+The button next to the block search switches where block colors come from. Off (the default), colors come from the default textures; on, they come from your applied texture packs, so suggestions match what you see in game.
+
 ## Taking blocks
 
 Click any block to pick it up, then click a slot to put it there (right-click drops it).
@@ -39,7 +43,7 @@ Click any block to pick it up, then click a slot to put it there (right-click dr
 
 ## How colors are worked out
 
-Each block's color is the average of the textures on its model, weighted by how much of the block each face covers, with grass and leaf tints included. Colors are compared and blended in OKLab, so matches and gradients follow how bright and colorful blocks look to the eye. Resource packs change the colors to match.
+Each block's color is the average of the textures on its model, weighted by how much of the block each face covers, with grass and leaf tints included. Colors are compared and blended in OKLab, so matches and gradients follow how bright and colorful blocks look to the eye.
 
 ## Downloads
 

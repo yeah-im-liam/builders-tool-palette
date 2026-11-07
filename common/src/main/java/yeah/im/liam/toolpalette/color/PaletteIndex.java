@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.GameMasterBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
+import yeah.im.liam.toolpalette.PaletteState;
 
 /** Every placeable block with its average colour, worked out from the textures of its block model. */
 public final class PaletteIndex {
@@ -62,9 +63,10 @@ public final class PaletteIndex {
         Minecraft minecraft = Minecraft.getInstance();
         BlockStateModelSet models = minecraft.getModelManager().getBlockStateModelSet();
         FeatureFlagSet features = minecraft.level != null ? minecraft.level.enabledFeatures() : FeatureFlags.DEFAULT_FLAGS;
-        List<Object> key = List.of(models, features, minecraft.getLanguageManager().getSelected());
+        boolean packColors = PaletteState.get().packColors;
+        List<Object> key = List.of(models, features, minecraft.getLanguageManager().getSelected(), packColors);
         if (!key.equals(builtFor)) {
-            build(minecraft, models, features);
+            build(minecraft, models, features, packColors);
             builtFor = key;
         }
         return entries;
@@ -86,13 +88,13 @@ public final class PaletteIndex {
         }
         return itemColors.computeIfAbsent(stack.getItem(), item -> {
             Identifier id = BuiltInRegistries.ITEM.getKey(item);
-            TextureAverages.Average average = new TextureAverages().of(id.withPath(path -> "item/" + path), 0, 0);
+            TextureAverages.Average average = new TextureAverages(PaletteState.get().packColors).of(id.withPath(path -> "item/" + path), 0, 0);
             return average == null ? -1 : ColorMath.fromLinear(average.r(), average.g(), average.b());
         });
     }
 
-    private static void build(Minecraft minecraft, BlockStateModelSet models, FeatureFlagSet features) {
-        TextureAverages textures = new TextureAverages();
+    private static void build(Minecraft minecraft, BlockStateModelSet models, FeatureFlagSet features, boolean packColors) {
+        TextureAverages textures = new TextureAverages(packColors);
         List<Entry> list = new ArrayList<>();
         Map<Item, Entry> map = new HashMap<>();
         List<BlockStateModelPart> parts = new ArrayList<>();

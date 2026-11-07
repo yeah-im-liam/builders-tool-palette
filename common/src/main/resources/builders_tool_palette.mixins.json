@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_25",
   "minVersion": "0.8",
   "client": [
-    "AbstractContainerScreenAccessor"
+    "AbstractContainerScreenAccessor",
+    "RecipeBookScreenAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -3,6 +3,7 @@ package yeah.im.liam.toolpalette;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.IntSupplier;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -18,6 +19,7 @@ import yeah.im.liam.toolpalette.gui.PaletteButton;
 import yeah.im.liam.toolpalette.gui.PaletteScreen;
 import yeah.im.liam.toolpalette.gui.Screens;
 import yeah.im.liam.toolpalette.mixin.AbstractContainerScreenAccessor;
+import yeah.im.liam.toolpalette.mixin.RecipeBookScreenAccessor;
 
 public final class ToolPalette {
     public static final String MOD_ID = "builders_tool_palette";
@@ -66,10 +68,12 @@ public final class ToolPalette {
             add.accept(new PaletteButton(screen, false, () -> panel.toolpalette$leftPos() - 22, () -> panel.toolpalette$topPos() + 4));
             add.accept(new PaletteButton(screen, true, () -> panel.toolpalette$leftPos() - 22, () -> panel.toolpalette$topPos() + 24));
         } else if (screen instanceof InventoryScreen) {
-            // Beside the recipe book button, which moves with the panel when the book opens.
+            // Left of the panel, where the open recipe book goes, so they move off screen while the book is open.
             AbstractContainerScreenAccessor panel = (AbstractContainerScreenAccessor) screen;
-            add.accept(new PaletteButton(screen, false, () -> panel.toolpalette$leftPos() + 126, () -> panel.toolpalette$topPos() + 61));
-            add.accept(new PaletteButton(screen, true, () -> panel.toolpalette$leftPos() + 148, () -> panel.toolpalette$topPos() + 61));
+            RecipeBookScreenAccessor book = (RecipeBookScreenAccessor) screen;
+            IntSupplier x = () -> book.toolpalette$recipeBook().isVisible() ? -1000 : panel.toolpalette$leftPos() - 22;
+            add.accept(new PaletteButton(screen, false, x, () -> panel.toolpalette$topPos() + 4));
+            add.accept(new PaletteButton(screen, true, x, () -> panel.toolpalette$topPos() + 24));
         }
     }
 }

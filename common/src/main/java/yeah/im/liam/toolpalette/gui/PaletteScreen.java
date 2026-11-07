@@ -45,8 +45,10 @@ public final class PaletteScreen extends Screen {
     private static final int SLIDER_X = 108;
     private static final int SLIDER_W = 94;
     private static final int SLIDER_H = 7;
-    private static final int SLIDER_Y = 24;
-    private static final int SLIDER_STEP = 10;
+    private static final int SLIDER_Y = 22;
+    private static final int SLIDER_STEP = 11;
+    private static final int FIELD_X = SLIDER_X + SLIDER_W + 4;
+    private static final int[] SLIDER_MAX = {255, 255, 255, 360, 100, 100};
     private static final String[] SLIDER_NAMES = {"R", "G", "B", "H", "S", "V"};
     private static final int RESULTS_Y = 96;
     private static final int RESULT_COLS = 12;
@@ -89,8 +91,9 @@ public final class PaletteScreen extends Screen {
     private Button clearButton;
     private EditBox search;
     private EditBox hex;
+    private final EditBox[] sliderFields = new EditBox[SLIDER_NAMES.length];
     private String searchText = "";
-    private boolean settingHex;
+    private boolean settingFields;
 
     private ItemStack carried = ItemStack.EMPTY;
     private Drag drag = Drag.NONE;
@@ -144,7 +147,7 @@ public final class PaletteScreen extends Screen {
                 .build());
         }
 
-        search = new EditBox(font, sideX, top + PAD + 2, columns * SLOT + 8, 16, text("search"));
+        search = new EditBox(font, sideX, top + PAD + 2, columns * SLOT + 8 - 20, 16, text("search"));
         search.setHint(text("search.hint").withStyle(ChatFormatting.DARK_GRAY));
         search.setValue(searchText);
         search.setResponder(value -> {
@@ -152,11 +155,21 @@ public final class PaletteScreen extends Screen {
             scroll = 0;
         });
         addRenderableWidget(search);
+        addRenderableWidget(new PackColorsButton(sideX + columns * SLOT + 8 - 18, top + PAD + 2, () -> state.packColors, this::togglePackColors));
 
         hex = new EditBox(font, mainX + HEX_X, mainY + 1, MAIN_W - HEX_X, 16, text("hex"));
         hex.setMaxLength(7);
         hex.setResponder(this::hexTyped);
         addRenderableWidget(hex);
+        for (int i = 0; i < SLIDER_NAMES.length; i++) {
+            int slider = i;
+            EditBox field = new EditBox(font, mainX + FIELD_X + 2, mainY + SLIDER_Y + i * SLIDER_STEP, MAIN_W - FIELD_X - 3, 9,
+                Component.literal(SLIDER_NAMES[i]));
+            field.setBordered(false);
+            field.setMaxLength(3);
+            field.setResponder(value -> sliderTyped(slider, value));
+            sliderFields[i] = addRenderableWidget(field);
+        }
 
         int buttonsX = mainX + GRADIENT_X;
         copyButton = addRenderableWidget(Button.builder(text("copy_to_hotbar"), b -> copyToHotbar())
@@ -167,7 +180,7 @@ public final class PaletteScreen extends Screen {
             .bounds(buttonsX + 124, mainY + BUTTONS_Y, 38, 20).build());
 
         updateWidgets();
-        updateHex();
+        updateFields();
     }
 
     private void updateWidgets() {
@@ -180,6 +193,9 @@ public final class PaletteScreen extends Screen {
             filterButtons[i].setMessage(Component.literal(letters[i]).withStyle(on[i] ? ChatFormatting.GREEN : ChatFormatting.GRAY));
         }
         hex.visible = !onGradient;
+        for (EditBox field : sliderFields) {
+            field.visible = !onGradient;
+        }
         copyButton.visible = onGradient;
         reverseButton.visible = onGradient;
         clearButton.visible = onGradient;
@@ -207,6 +223,22 @@ public final class PaletteScreen extends Screen {
         updateWidgets();
     }
 
+    private void togglePackColors() {
+        int eyedropperColor = PaletteIndex.colorOf(state.eyedropper);
+        state.packColors = !state.packColors;
+        // A colour taken with the eyedropper follows the switch; a colour picked by hand stays.
+        if (eyedropperColor >= 0 && eyedropperColor == state.color()) {
+            int rgb = PaletteIndex.colorOf(state.eyedropper);
+            if (rgb >= 0) {
+                state.setColor(rgb);
+                updateFields();
+            }
+        }
+        Arrays.fill(state.choice, 0);
+        listedFor = null;
+        dirty = true;
+    }
+
     private boolean creative() {
         return minecraft.player != null && minecraft.gameMode != null && minecraft.player.isCreative();
     }
@@ -215,19 +247,25 @@ public final class PaletteScreen extends Screen {
 
     private void colorChanged() {
         dirty = true;
-        updateHex();
+        updateFields();
     }
 
-    private void updateHex() {
+    /** Shows the current colour in the hex and number fields, except the one being typed in. */
+    private void updateFields() {
+        settingFields = true;
         if (hex != null && !hex.isFocused()) {
-            settingHex = true;
             hex.setValue(ColorMath.hex(state.color()));
-            settingHex = false;
         }
+        for (int i = 0; i < sliderFields.length; i++) {
+            if (sliderFields[i] != null && !sliderFields[i].isFocused()) {
+                sliderFields[i].setValue(Integer.toString(sliderNumber(i)));
+            }
+        }
+        settingFields = false;
     }
 
     private void hexTyped(String value) {
-        if (settingHex) {
+        if (settingFields) {
             return;
         }
         int rgb = ColorMath.parseHex(value);
@@ -277,13 +315,28 @@ public final class PaletteScreen extends Screen {
         };
     }
 
-    private String sliderText(int slider) {
-        float v = sliderValue(slider);
-        return switch (slider) {
-            case 0, 1, 2 -> Integer.toString(Math.round(v * 255));
-            case 3 -> Math.round(v * 360) + "°";
-            default -> Math.round(v * 100) + "%";
-        };
+    /** The slider's value as typed: 0-255 for R, G and B, degrees for H, percent for S and V. */
+    private int sliderNumber(int slider) {
+        return Math.round(sliderValue(slider) * SLIDER_MAX[slider]);
+    }
+
+    private void sliderTyped(int slider, String value) {
+        if (settingFields) {
+            return;
+        }
+        String digits = value.replaceAll("[^0-9]", "");
+        if (!digits.equals(value)) {
+            settingFields = true;
+            sliderFields[slider].setValue(digits);
+            settingFields = false;
+        }
+        if (digits.isEmpty()) {
+            return;
+        }
+        int number = Math.min(Integer.parseInt(digits), SLIDER_MAX[slider]);
+        if (number != sliderNumber(slider)) {
+            setSlider(slider, number / (float) SLIDER_MAX[slider]);
+        }
     }
 
     private int sliderStepCount(int slider) {
@@ -449,7 +502,7 @@ public final class PaletteScreen extends Screen {
             return true;
         }
         setFocused(null);
-        updateHex();
+        updateFields();
         refresh();
         double mx = event.x();
         double my = event.y();
@@ -640,9 +693,9 @@ public final class PaletteScreen extends Screen {
     @Override
     public boolean keyPressed(KeyEvent event) {
         if (getFocused() instanceof EditBox box && box.isFocused()) {
-            if (event.isEscape()) {
+            if (event.isEscape() || event.isConfirmation()) {
                 setFocused(null);
-                updateHex();
+                updateFields();
                 return true;
             }
             return super.keyPressed(event);
@@ -766,7 +819,10 @@ public final class PaletteScreen extends Screen {
             int thumb = sx + Math.round(sliderValue(i) * (SLIDER_W - 1));
             g.fill(thumb - 1, sy - 2, thumb + 2, sy + SLIDER_H + 2, 0xFF000000);
             g.fill(thumb, sy - 1, thumb + 1, sy + SLIDER_H + 1, 0xFFFFFFFF);
-            g.text(font, sliderText(i), sx + SLIDER_W + 4, sy, Draw.TEXT, false);
+            // Background of the number field, which draws only its text.
+            int fx = x + FIELD_X;
+            g.fill(fx, sy - 2, x + MAIN_W, sy + 9, sliderFields[i].isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0);
+            g.fill(fx + 1, sy - 1, x + MAIN_W - 1, sy + 8, 0xFF000000);
         }
 
         g.text(font, text("similar"), x, y + RESULTS_Y - 10, Draw.TEXT, false);
