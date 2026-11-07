@@ -21,7 +21,7 @@
   "builders_tool_palette.similar": "Similar blocks",
   "builders_tool_palette.gradient.hint": "Put blocks in two or more slots:",
   "builders_tool_palette.gradient.input": "Put a block here",
-  "builders_tool_palette.gradient.cycle": "Scroll or use the arrows for other matches",
+  "builders_tool_palette.gradient.cycle": "Scroll for other matches",
   "builders_tool_palette.gradient.match": "Match %s",
   "builders_tool_palette.copy_to_hotbar": "Copy to Hotbar",
   "builders_tool_palette.copy_to_hotbar.description": "Puts the gradient on your hotbar, replacing what is there",

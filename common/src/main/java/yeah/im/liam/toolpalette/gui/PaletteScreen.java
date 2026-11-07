@@ -454,7 +454,7 @@ public final class PaletteScreen extends Screen {
         double mx = event.x();
         double my = event.y();
         Hit hit = hit(mx, my);
-        if (event.button() == 1) {
+        if (event.button() == MouseButtons.RIGHT) {
             if (!carried.isEmpty()) {
                 carried = ItemStack.EMPTY;
             } else if (hit != null && hit.kind() == Kind.INPUT) {
@@ -465,7 +465,7 @@ public final class PaletteScreen extends Screen {
             }
             return true;
         }
-        if (event.button() != 0) {
+        if (event.button() != MouseButtons.LEFT) {
             return false;
         }
         if (!state.gradientTab) {
@@ -513,8 +513,11 @@ public final class PaletteScreen extends Screen {
         switch (hit.kind()) {
             case HOTBAR -> {
                 if (!carried.isEmpty()) {
-                    putInHotbar(hit.index(), carried);
-                    carried = ItemStack.EMPTY;
+                    // In survival nothing moves, so the block stays on the cursor.
+                    if (creative()) {
+                        putInHotbar(hit.index(), carried);
+                        carried = ItemStack.EMPTY;
+                    }
                 } else if (!hit.stack().isEmpty()) {
                     carried = hit.stack().copyWithCount(1);
                 }
@@ -720,6 +723,9 @@ public final class PaletteScreen extends Screen {
         if (!carried.isEmpty()) {
             g.nextStratum();
             g.item(carried, mouseX - 8, mouseY - 8);
+            if (hit != null && hit.kind() == Kind.HOTBAR && !creative()) {
+                g.setTooltipForNextFrame(font, text("survival_note"), mouseX, mouseY);
+            }
         } else {
             tooltips(g, hit, mouseX, mouseY);
         }
