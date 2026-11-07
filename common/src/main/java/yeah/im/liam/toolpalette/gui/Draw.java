@@ -21,6 +21,9 @@ final class Draw {
         g.fill(x1, y1, x1 + 1, y2 - 1, 0xFF373737);
         g.fill(x1 + 1, y2 - 1, x2, y2, 0xFFFFFFFF);
         g.fill(x2 - 1, y1 + 1, x2, y2, 0xFFFFFFFF);
+        // The two corners where the dark and light edges meet stay slot grey whatever the fill.
+        g.fill(x2 - 1, y1, x2, y1 + 1, 0xFF8B8B8B);
+        g.fill(x1, y2 - 1, x1 + 1, y2, 0xFF8B8B8B);
     }
 
     /** A raised button face, lighter while hovered. */
