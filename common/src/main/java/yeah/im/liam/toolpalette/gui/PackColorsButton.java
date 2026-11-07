@@ -12,11 +12,13 @@ import net.minecraft.network.chat.Component;
 
 /** Switches block colours between the default textures and the applied texture packs. */
 final class PackColorsButton extends AbstractWidget {
+    static final int WIDTH = 20;
+
     private final BooleanSupplier on;
     private final Runnable toggle;
 
     PackColorsButton(int x, int y, BooleanSupplier on, Runnable toggle) {
-        super(x, y, 18, 16, Component.translatable("builders_tool_palette.pack_colors"));
+        super(x, y, WIDTH, 20, Component.translatable("builders_tool_palette.pack_colors"));
         this.on = on;
         this.toggle = toggle;
         updateTooltip();
@@ -31,7 +33,7 @@ final class PackColorsButton extends AbstractWidget {
     @Override
     protected void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         Draw.button(g, getX(), getY(), getX() + width, getY() + height, isHoveredOrFocused());
-        Draw.packIcon(g, getX() + 4, getY() + 3, on.getAsBoolean());
+        Draw.packIcon(g, getX() + 5, getY() + 5, on.getAsBoolean());
     }
 
     @Override

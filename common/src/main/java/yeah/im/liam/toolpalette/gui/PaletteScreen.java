@@ -33,6 +33,7 @@ public final class PaletteScreen extends Screen {
     private static final int MAIN_W = 232;
     private static final int MAIN_H = 136;
     private static final int TAB_H = 20;
+    private static final int FILTER_W = 11;
     private static final int HEIGHT = PAD + TAB_H + 4 + MAIN_H + 4 + SLOT + PAD;
 
     private static final int SV = 80;
@@ -133,21 +134,35 @@ public final class PaletteScreen extends Screen {
         hotbarX = mainX + GRADIENT_X;
         hotbarY = top + HEIGHT - PAD - SLOT;
 
-        colorTab = addRenderableWidget(Button.builder(text("tab.color_picker"), b -> showTab(false))
-            .bounds(mainX, top + PAD, 87, TAB_H).build());
-        gradientTab = addRenderableWidget(Button.builder(text("tab.gradient_helper"), b -> showTab(true))
-            .bounds(mainX + 89, top + PAD, 87, TAB_H).build());
+        // The tab row: both tabs as wide as their names, the texture pack button, then the four filters on the right.
+        int filtersX = mainX + MAIN_W - 4 * FILTER_W - 3;
+        Component colorLabel = text("tab.color_picker");
+        Component gradientLabel = text("tab.gradient_helper");
+        int colorWidth = font.width(colorLabel) + 6;
+        int gradientWidth = font.width(gradientLabel) + 6;
+        int room = filtersX - mainX - 2 - 2 - PackColorsButton.WIDTH - 2;
+        if (colorWidth + gradientWidth > room) {
+            // Long translations: share the room, and the button text scrolls.
+            colorWidth = room * colorWidth / (colorWidth + gradientWidth);
+            gradientWidth = room - colorWidth;
+        }
+        colorTab = addRenderableWidget(Button.builder(colorLabel, b -> showTab(false))
+            .bounds(mainX, top + PAD, colorWidth, TAB_H).build());
+        gradientTab = addRenderableWidget(Button.builder(gradientLabel, b -> showTab(true))
+            .bounds(mainX + colorWidth + 2, top + PAD, gradientWidth, TAB_H).build());
+        addRenderableWidget(new PackColorsButton(mainX + colorWidth + 2 + gradientWidth + 2, top + PAD, () -> state.packColors,
+            this::togglePackColors));
         String[] filters = {"full_cube", "solid", "opaque", "same_texture"};
         for (int i = 0; i < 4; i++) {
             int index = i;
             filterButtons[i] = addRenderableWidget(Button.builder(Component.empty(), b -> toggleFilter(index))
-                .bounds(mainX + 178 + i * 14, top + PAD, 12, TAB_H)
+                .bounds(filtersX + i * (FILTER_W + 1), top + PAD, FILTER_W, TAB_H)
                 .tooltip(Tooltip.create(Component.empty().append(text("filter." + filters[i])).append("\n")
                     .append(text("filter." + filters[i] + ".description").withStyle(ChatFormatting.GRAY))))
                 .build());
         }
 
-        search = new EditBox(font, sideX, top + PAD + 2, columns * SLOT + 8 - 20, 16, text("search"));
+        search = new EditBox(font, sideX, top + PAD + 2, columns * SLOT + 8, 16, text("search"));
         search.setHint(text("search.hint").withStyle(ChatFormatting.DARK_GRAY));
         search.setValue(searchText);
         search.setResponder(value -> {
@@ -155,7 +170,6 @@ public final class PaletteScreen extends Screen {
             scroll = 0;
         });
         addRenderableWidget(search);
-        addRenderableWidget(new PackColorsButton(sideX + columns * SLOT + 8 - 18, top + PAD + 2, () -> state.packColors, this::togglePackColors));
 
         hex = new EditBox(font, mainX + HEX_X, mainY + 1, MAIN_W - HEX_X, 16, text("hex"));
         hex.setMaxLength(7);

@@ -32,7 +32,7 @@ The F, S, O and T buttons narrow the suggestions in both tools:
 
 ## Texture pack colors
 
-The button next to the block search switches where block colors come from. Off (the default), colors come from the default textures; on, they come from your applied texture packs, so suggestions match what you see in game.
+The button with the four-color square, next to the Gradient Helper tab, switches where block colors come from. Off (the default), colors come from the default textures; on, they come from your applied texture packs, so suggestions match what you see in game.
 
 ## Taking blocks
 
