@@ -237,6 +237,7 @@ public final class PaletteScreen extends Screen {
             default -> state.sameTexture = !state.sameTexture;
         }
         Arrays.fill(state.choice, 0);
+        listedFor = null;
         dirty = true;
         updateWidgets();
     }
@@ -430,9 +431,10 @@ public final class PaletteScreen extends Screen {
         }
         if (!searchText.equals(listedFor)) {
             String query = searchText.trim().toLowerCase(Locale.ROOT);
+            PaletteIndex.Filters filters = state.filters();
             List<PaletteIndex.Entry> matches = new ArrayList<>();
             for (PaletteIndex.Entry entry : PaletteIndex.entries()) {
-                if (query.isEmpty() || entry.search().contains(query)) {
+                if ((query.isEmpty() || entry.search().contains(query)) && entry.passes(filters)) {
                     matches.add(entry);
                 }
             }
@@ -516,6 +518,11 @@ public final class PaletteScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        // The numbers look like plain text, so with a block in hand a click there drops it like any other empty spot.
+        if (!carried.isEmpty() && overNumberField(event.x(), event.y())) {
+            carried = ItemStack.EMPTY;
+            return true;
+        }
         if (super.mouseClicked(event, doubleClick)) {
             return true;
         }
@@ -578,6 +585,15 @@ public final class PaletteScreen extends Screen {
         }
         clickSlot(hit, event.hasShiftDown());
         return true;
+    }
+
+    private boolean overNumberField(double mx, double my) {
+        for (EditBox field : sliderFields) {
+            if (field.visible && field.isMouseOver(mx, my)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void clickSlot(Hit hit, boolean shift) {

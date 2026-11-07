@@ -23,7 +23,7 @@ Both tools share one screen. A searchable list of every block, sorted by color, 
 
 ## Filters
 
-The F, S, O and T buttons narrow the suggestions in both tools:
+The F, S, O and T buttons narrow the suggestions in both tools and the block list:
 
 - **Full Cube:** only blocks that fill their whole space
 - **Solid:** only blocks you can't walk through
