@@ -833,9 +833,6 @@ public final class PaletteScreen extends Screen {
             if (hit != null && hit.kind() == Kind.HOTBAR && !creative()) {
                 g.setTooltipForNextFrame(font, text("survival_note"), mouseX, mouseY);
             }
-        } else if (overBrightnessLetter(mouseX, mouseY)) {
-            String name = state.valueLetter ? "value" : "brightness";
-            g.setComponentTooltipForNextFrame(font, List.of(text(name), text(name + ".switch").withStyle(ChatFormatting.GRAY)), mouseX, mouseY);
         } else {
             tooltips(g, hit, mouseX, mouseY);
         }
