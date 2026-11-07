@@ -65,15 +65,19 @@ public final class ToolPalette {
     public static void addInventoryButtons(Screen screen, Consumer<AbstractWidget> add) {
         if (screen instanceof CreativeModeInventoryScreen) {
             AbstractContainerScreenAccessor panel = (AbstractContainerScreenAccessor) screen;
-            add.accept(new PaletteButton(screen, false, () -> panel.toolpalette$leftPos() - 22, () -> panel.toolpalette$topPos() + 4));
-            add.accept(new PaletteButton(screen, true, () -> panel.toolpalette$leftPos() - 22, () -> panel.toolpalette$topPos() + 24));
+            addButtons(screen, panel, panel::toolpalette$leftPos, add);
         } else if (screen instanceof InventoryScreen) {
             // Left of the panel, where the open recipe book goes, so they move off screen while the book is open.
             AbstractContainerScreenAccessor panel = (AbstractContainerScreenAccessor) screen;
             RecipeBookScreenAccessor book = (RecipeBookScreenAccessor) screen;
-            IntSupplier x = () -> book.toolpalette$recipeBook().isVisible() ? -1000 : panel.toolpalette$leftPos() - 22;
-            add.accept(new PaletteButton(screen, false, x, () -> panel.toolpalette$topPos() + 4));
-            add.accept(new PaletteButton(screen, true, x, () -> panel.toolpalette$topPos() + 24));
+            addButtons(screen, panel, () -> book.toolpalette$recipeBook().isVisible() ? -1000 : panel.toolpalette$leftPos(), add);
         }
+    }
+
+    /** The two buttons, one above the other, left of the panel edge at x = right. */
+    private static void addButtons(Screen screen, AbstractContainerScreenAccessor panel, IntSupplier right, Consumer<AbstractWidget> add) {
+        PaletteButton picker = new PaletteButton(screen, false, right, () -> panel.toolpalette$topPos() + 4);
+        add.accept(picker);
+        add.accept(new PaletteButton(screen, true, right, () -> panel.toolpalette$topPos() + 4 + picker.getHeight() + 2));
     }
 }

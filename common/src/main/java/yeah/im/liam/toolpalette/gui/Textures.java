@@ -42,7 +42,11 @@ final class Textures {
                          boolean stretchTop, boolean stretchBottom, boolean stretchLeft, boolean stretchRight, boolean stretchMiddle) {
     }
 
+    private record Size(int width, int height) {
+    }
+
     private static final Map<Identifier, Frame> FRAMES = new HashMap<>();
+    private static final Map<Identifier, Size> SIZES = new HashMap<>();
     private static @Nullable Object loadedFor;
 
     private Textures() {
@@ -105,14 +109,49 @@ final class Textures {
         }
     }
 
-    private static Frame frameOf(Identifier texture) {
-        // The block model set is rebuilt on every resource reload, so it tells when packs may have changed the texture.
+    /** The texture's size in GUI pixels: the image size, or the .mcmeta's width and height for higher-resolution images. */
+    static int width(Identifier texture) {
+        return sizeOf(texture).width();
+    }
+
+    static int height(Identifier texture) {
+        return sizeOf(texture).height();
+    }
+
+    private static void forgetOnReload() {
+        // The block model set is rebuilt on every resource reload, so it tells when packs may have changed the textures.
         Object marker = Minecraft.getInstance().getModelManager().getBlockStateModelSet();
         if (marker != loadedFor) {
             FRAMES.clear();
+            SIZES.clear();
             loadedFor = marker;
         }
+    }
+
+    private static Frame frameOf(Identifier texture) {
+        forgetOnReload();
         return FRAMES.computeIfAbsent(texture, Textures::loadFrame);
+    }
+
+    private static Size sizeOf(Identifier texture) {
+        forgetOnReload();
+        return SIZES.computeIfAbsent(texture, Textures::loadSize);
+    }
+
+    private static Size loadSize(Identifier texture) {
+        Optional<Resource> image = Minecraft.getInstance().getResourceManager().getResource(texture);
+        if (image.isEmpty()) {
+            return new Size(16, 16);
+        }
+        try (InputStream in = image.get().open(); NativeImage pixels = NativeImage.read(in)) {
+            JsonObject scaling = scaling(texture);
+            int width = scaling != null && scaling.has("width") ? scaling.get("width").getAsInt() : pixels.getWidth();
+            int height = scaling != null && scaling.has("height") ? scaling.get("height").getAsInt() : pixels.getHeight();
+            return new Size(width, height);
+        } catch (Exception e) {
+            ToolPalette.LOGGER.warn("Could not read {}", texture, e);
+            return new Size(16, 16);
+        }
     }
 
     private static Frame loadFrame(Identifier texture) {
