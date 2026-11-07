@@ -794,7 +794,7 @@ public final class PaletteScreen extends Screen {
         if (creative() != wasCreative) {
             updateWidgets();
         }
-        Draw.panel(g, left, top, left + panelWidth, top + HEIGHT);
+        Textures.frame(g, Textures.MENU_FRAME, left, top, panelWidth, HEIGHT);
         if (state.gradientTab) {
             drawGradientTab(g);
         } else {

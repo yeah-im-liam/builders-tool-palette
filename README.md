@@ -45,6 +45,19 @@ Click any block to pick it up, then click a slot to put it there (right-click dr
 
 Each block's color is the average of the textures on its model, weighted by how much of the block each face covers, with grass and leaf tints included. Colors are compared and blended in OKLab, so matches and gradients follow how bright and colorful blocks look to the eye.
 
+## Textures
+
+The mod's images are in `assets/builders_tool_palette/textures/gui/`, and resource packs can replace them:
+
+| File | Size | Used for |
+| --- | --- | --- |
+| `color_picker_button.png`, `color_picker_button_hovered.png` | 20×18 | Inventory button that opens the Color Picker |
+| `gradient_helper_button.png`, `gradient_helper_button_hovered.png` | 20×18 | Inventory button that opens the Gradient Helper |
+| `pack_colors_off.png`, `pack_colors_off_hovered.png`, `pack_colors_on.png`, `pack_colors_on_hovered.png` | 20×20 | Texture pack colors button |
+| `menu_frame.png` | any | Frame of the menu: the corners are drawn as they are, the edges and the middle repeat to fill any size |
+
+`menu_frame.png.mcmeta` sets how thick the frame's border is, in the same form as the game's own stretchable GUI images: `"border": 4`, or `"border": {"left": 4, "top": 4, "right": 4, "bottom": 4}`. For a higher-resolution image, add `"width"` and `"height"` with its size in GUI pixels.
+
 ## Downloads
 
 - Loaders: Fabric (with Fabric API) and NeoForge

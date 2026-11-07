@@ -9,6 +9,7 @@ import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 /** Switches block colours between the default textures and the applied texture packs. */
 final class PackColorsButton extends AbstractWidget {
@@ -32,8 +33,11 @@ final class PackColorsButton extends AbstractWidget {
 
     @Override
     protected void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
-        Draw.button(g, getX(), getY(), getX() + width, getY() + height, isHoveredOrFocused());
-        Draw.packIcon(g, getX() + 5, getY() + 5, on.getAsBoolean());
+        boolean hovered = isHoveredOrFocused();
+        Identifier texture = on.getAsBoolean()
+            ? hovered ? Textures.PACK_COLORS_ON_HOVERED : Textures.PACK_COLORS_ON
+            : hovered ? Textures.PACK_COLORS_OFF_HOVERED : Textures.PACK_COLORS_OFF;
+        Textures.draw(g, texture, getX(), getY(), width, height);
     }
 
     @Override

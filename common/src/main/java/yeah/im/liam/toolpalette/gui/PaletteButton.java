@@ -9,6 +9,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 /** A small button in the inventory that opens the colour picker or the gradient helper, following the inventory panel. */
 public final class PaletteButton extends AbstractWidget {
@@ -31,8 +32,11 @@ public final class PaletteButton extends AbstractWidget {
     protected void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         setX(x.getAsInt());
         setY(y.getAsInt());
-        Draw.button(g, getX(), getY(), getX() + width, getY() + height, isHoveredOrFocused());
-        Draw.icon(g, getX() + 4, getY() + 4, gradient);
+        boolean hovered = isHoveredOrFocused();
+        Identifier texture = gradient
+            ? hovered ? Textures.GRADIENT_HELPER_BUTTON_HOVERED : Textures.GRADIENT_HELPER_BUTTON
+            : hovered ? Textures.COLOR_PICKER_BUTTON_HOVERED : Textures.COLOR_PICKER_BUTTON;
+        Textures.draw(g, texture, getX(), getY(), width, height);
     }
 
     @Override
