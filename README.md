@@ -11,7 +11,8 @@ Both tools share one screen. A searchable list of every block, sorted by color, 
 
 ## Color Picker
 
-- Pick a color with the saturation/brightness square and the hue bar, the R G B and H S V sliders, or a hex code. Each slider has a number box for typing exact values (R G B 0-255, H 0-360, S V 0-100).
+- Pick a color with the saturation/brightness square and the hue bar, the R G B and H S B sliders, or a hex code. Each slider has a number box for typing exact values (R G B 0-255, H 0-360, S B 0-100).
+- Click the B of H S B to show it as V (value), the other common name for the same number, and click again to switch back. The choice is saved.
 - The eyedropper slot takes the color of any block or item you put in it.
 - "Similar blocks" shows the 24 blocks closest to that color.
 

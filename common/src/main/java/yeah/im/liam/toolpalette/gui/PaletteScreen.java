@@ -51,8 +51,11 @@ public final class PaletteScreen extends Screen {
     private static final int FIELD_X = SLIDER_X + SLIDER_W + 4;
     private static final int[] SLIDER_MAX = {255, 255, 255, 360, 100, 100};
     private static final String[] SLIDER_UNITS = {"", "", "", "°", "%", "%"};
-    private static final String[] SLIDER_NAMES = {"R", "G", "B", "H", "S", "V"};
-    private static final int RESULTS_Y = 96;
+    private static final String[] SLIDER_NAMES = {"R", "G", "B", "H", "S", "B"};
+    /** The extra space between the R G B rows and the H S B rows. */
+    private static final int SLIDER_GROUP_GAP = 4;
+    private static final int BRIGHTNESS = 5;
+    private static final int RESULTS_Y = 100;
     private static final int RESULT_COLS = 12;
     private static final int RESULT_COUNT = 24;
 
@@ -179,7 +182,7 @@ public final class PaletteScreen extends Screen {
         for (int i = 0; i < SLIDER_NAMES.length; i++) {
             int slider = i;
             // Drawn as plain panel text; the screen adds the unit after it.
-            EditBox field = new EditBox(font, mainX + FIELD_X, mainY + SLIDER_Y + i * SLIDER_STEP, MAIN_W - FIELD_X, 9,
+            EditBox field = new EditBox(font, mainX + FIELD_X, mainY + sliderY(i), MAIN_W - FIELD_X, 9,
                 Component.literal(SLIDER_NAMES[i]));
             field.setBordered(false);
             field.setTextColor(Draw.TEXT);
@@ -451,6 +454,19 @@ public final class PaletteScreen extends Screen {
 
     // Hit testing
 
+    private static int sliderY(int slider) {
+        return SLIDER_Y + slider * SLIDER_STEP + (slider >= 3 ? SLIDER_GROUP_GAP : 0);
+    }
+
+    /** The brightness row is labelled B or, if the player clicked it, V for value; both are the same number. */
+    private String sliderName(int slider) {
+        return slider == BRIGHTNESS && state.valueLetter ? "V" : SLIDER_NAMES[slider];
+    }
+
+    private boolean overBrightnessLetter(double mx, double my) {
+        return !state.gradientTab && in(mx, my, mainX + RIGHT_X, mainY + sliderY(BRIGHTNESS) - 1, SLIDER_X - 2 - RIGHT_X, SLIDER_H + 2);
+    }
+
     private static boolean in(double mx, double my, int x, int y, int w, int h) {
         return mx >= x && mx < x + w && my >= y && my < y + h;
     }
@@ -547,6 +563,10 @@ public final class PaletteScreen extends Screen {
             return false;
         }
         if (!state.gradientTab) {
+            if (carried.isEmpty() && overBrightnessLetter(mx, my)) {
+                state.valueLetter = !state.valueLetter;
+                return true;
+            }
             if (in(mx, my, mainX, mainY, SV, SV)) {
                 startDrag(Drag.SV, 0, mx, my);
                 return true;
@@ -556,7 +576,7 @@ public final class PaletteScreen extends Screen {
                 return true;
             }
             for (int i = 0; i < SLIDER_NAMES.length; i++) {
-                if (in(mx, my, mainX + SLIDER_X - 2, mainY + SLIDER_Y + i * SLIDER_STEP - 1, SLIDER_W + 4, SLIDER_H + 2)) {
+                if (in(mx, my, mainX + SLIDER_X - 2, mainY + sliderY(i) - 1, SLIDER_W + 4, SLIDER_H + 2)) {
                     startDrag(Drag.SLIDER, i, mx, my);
                     return true;
                 }
@@ -715,7 +735,7 @@ public final class PaletteScreen extends Screen {
             }
         } else {
             for (int i = 0; i < SLIDER_NAMES.length; i++) {
-                if (in(mx, my, mainX + RIGHT_X, mainY + SLIDER_Y + i * SLIDER_STEP - 1, MAIN_W - RIGHT_X, SLIDER_H + 2)) {
+                if (in(mx, my, mainX + RIGHT_X, mainY + sliderY(i) - 1, MAIN_W - RIGHT_X, SLIDER_H + 2)) {
                     setSlider(i, sliderValue(i) + direction / (float) sliderStepCount(i));
                     return true;
                 }
@@ -813,6 +833,9 @@ public final class PaletteScreen extends Screen {
             if (hit != null && hit.kind() == Kind.HOTBAR && !creative()) {
                 g.setTooltipForNextFrame(font, text("survival_note"), mouseX, mouseY);
             }
+        } else if (overBrightnessLetter(mouseX, mouseY)) {
+            String name = state.valueLetter ? "value" : "brightness";
+            g.setComponentTooltipForNextFrame(font, List.of(text(name), text(name + ".switch").withStyle(ChatFormatting.GRAY)), mouseX, mouseY);
         } else {
             tooltips(g, hit, mouseX, mouseY);
         }
@@ -843,8 +866,8 @@ public final class PaletteScreen extends Screen {
         Draw.inset(g, x + SWATCH_X, y, x + SWATCH_X + SWATCH_W, y + SLOT, 0xFF000000 | state.color());
 
         for (int i = 0; i < SLIDER_NAMES.length; i++) {
-            int sy = y + SLIDER_Y + i * SLIDER_STEP;
-            g.text(font, SLIDER_NAMES[i], x + RIGHT_X, sy, Draw.TEXT, false);
+            int sy = y + sliderY(i);
+            g.text(font, sliderName(i), x + RIGHT_X, sy, Draw.TEXT, false);
             int sx = x + SLIDER_X;
             for (int p = 0; p < SLIDER_W; p += 2) {
                 g.fill(sx + p, sy, sx + Math.min(p + 2, SLIDER_W), sy + SLIDER_H, 0xFF000000 | sliderColor(i, p / (float) (SLIDER_W - 1)));

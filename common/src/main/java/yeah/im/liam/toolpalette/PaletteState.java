@@ -35,6 +35,8 @@ public final class PaletteState {
     public boolean sameTexture;
     /** Whether block colours come from the applied texture packs rather than the default textures. */
     public boolean packColors;
+    /** Whether the brightness slider is labelled V (value) instead of B. */
+    public boolean valueLetter;
     public final ItemStack[] gradient = new ItemStack[GRADIENT_SLOTS];
     /** For each gradient slot, which match is shown: 0 is the closest. */
     public final int[] choice = new int[GRADIENT_SLOTS];
@@ -99,6 +101,7 @@ public final class PaletteState {
         state.opaque = Boolean.parseBoolean(properties.getProperty("filter.opaque"));
         state.sameTexture = Boolean.parseBoolean(properties.getProperty("filter.same_texture"));
         state.packColors = Boolean.parseBoolean(properties.getProperty("pack_colors"));
+        state.valueLetter = "V".equals(properties.getProperty("brightness_letter"));
         for (int i = 0; i < GRADIENT_SLOTS; i++) {
             state.gradient[i] = stack(properties.getProperty("gradient." + i));
         }
@@ -116,6 +119,7 @@ public final class PaletteState {
         properties.setProperty("filter.opaque", Boolean.toString(opaque));
         properties.setProperty("filter.same_texture", Boolean.toString(sameTexture));
         properties.setProperty("pack_colors", Boolean.toString(packColors));
+        properties.setProperty("brightness_letter", valueLetter ? "V" : "B");
         for (int i = 0; i < GRADIENT_SLOTS; i++) {
             properties.setProperty("gradient." + i, id(gradient[i]));
         }
