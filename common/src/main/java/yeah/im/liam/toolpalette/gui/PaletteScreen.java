@@ -46,10 +46,11 @@ public final class PaletteScreen extends Screen {
     private static final int SLIDER_X = 108;
     private static final int SLIDER_W = 94;
     private static final int SLIDER_H = 7;
-    private static final int SLIDER_Y = 22;
-    private static final int SLIDER_STEP = 11;
+    private static final int SLIDER_Y = 24;
+    private static final int SLIDER_STEP = 10;
     private static final int FIELD_X = SLIDER_X + SLIDER_W + 4;
     private static final int[] SLIDER_MAX = {255, 255, 255, 360, 100, 100};
+    private static final String[] SLIDER_UNITS = {"", "", "", "°", "%", "%"};
     private static final String[] SLIDER_NAMES = {"R", "G", "B", "H", "S", "V"};
     private static final int RESULTS_Y = 96;
     private static final int RESULT_COLS = 12;
@@ -134,13 +135,13 @@ public final class PaletteScreen extends Screen {
         hotbarX = mainX + GRADIENT_X;
         hotbarY = top + HEIGHT - PAD - SLOT;
 
-        // The tab row: both tabs as wide as their names, the texture pack button, then the four filters on the right.
-        int filtersX = mainX + MAIN_W - 4 * FILTER_W - 3;
+        // The tab row, left to right: both tabs as wide as their names, the texture pack button, then the four filters.
+        int filtersWidth = 4 * FILTER_W + 3;
         Component colorLabel = text("tab.color_picker");
         Component gradientLabel = text("tab.gradient_helper");
         int colorWidth = font.width(colorLabel) + 6;
         int gradientWidth = font.width(gradientLabel) + 6;
-        int room = filtersX - mainX - 2 - 2 - PackColorsButton.WIDTH - 2;
+        int room = MAIN_W - 2 - 2 - PackColorsButton.WIDTH - 2 - filtersWidth;
         if (colorWidth + gradientWidth > room) {
             // Long translations: share the room, and the button text scrolls.
             colorWidth = room * colorWidth / (colorWidth + gradientWidth);
@@ -150,16 +151,16 @@ public final class PaletteScreen extends Screen {
             .bounds(mainX, top + PAD, colorWidth, TAB_H).build());
         gradientTab = addRenderableWidget(Button.builder(gradientLabel, b -> showTab(true))
             .bounds(mainX + colorWidth + 2, top + PAD, gradientWidth, TAB_H).build());
-        addRenderableWidget(new PackColorsButton(mainX + colorWidth + 2 + gradientWidth + 2, top + PAD, () -> state.packColors,
-            this::togglePackColors));
+        int packX = mainX + colorWidth + 2 + gradientWidth + 2;
+        addRenderableWidget(new PackColorsButton(packX, top + PAD, () -> state.packColors, this::togglePackColors));
+        int filtersX = packX + PackColorsButton.WIDTH + 2;
         String[] filters = {"full_cube", "solid", "opaque", "same_texture"};
         for (int i = 0; i < 4; i++) {
             int index = i;
-            filterButtons[i] = addRenderableWidget(Button.builder(Component.empty(), b -> toggleFilter(index))
-                .bounds(filtersX + i * (FILTER_W + 1), top + PAD, FILTER_W, TAB_H)
-                .tooltip(Tooltip.create(Component.empty().append(text("filter." + filters[i])).append("\n")
-                    .append(text("filter." + filters[i] + ".description").withStyle(ChatFormatting.GRAY))))
-                .build());
+            filterButtons[i] = new LetterButton(filtersX + i * (FILTER_W + 1), top + PAD, FILTER_W, TAB_H, b -> toggleFilter(index));
+            filterButtons[i].setTooltip(Tooltip.create(Component.empty().append(text("filter." + filters[i])).append("\n")
+                .append(text("filter." + filters[i] + ".description").withStyle(ChatFormatting.GRAY))));
+            addRenderableWidget(filterButtons[i]);
         }
 
         search = new EditBox(font, sideX, top + PAD + 2, columns * SLOT + 8, 16, text("search"));
@@ -177,9 +178,12 @@ public final class PaletteScreen extends Screen {
         addRenderableWidget(hex);
         for (int i = 0; i < SLIDER_NAMES.length; i++) {
             int slider = i;
-            EditBox field = new EditBox(font, mainX + FIELD_X + 2, mainY + SLIDER_Y + i * SLIDER_STEP, MAIN_W - FIELD_X - 3, 9,
+            // Drawn as plain panel text; the screen adds the unit and an underline while hovered or typed in.
+            EditBox field = new EditBox(font, mainX + FIELD_X, mainY + SLIDER_Y + i * SLIDER_STEP, MAIN_W - FIELD_X, 9,
                 Component.literal(SLIDER_NAMES[i]));
             field.setBordered(false);
+            field.setTextColor(Draw.TEXT);
+            field.setTextShadow(false);
             field.setMaxLength(3);
             field.setResponder(value -> sliderTyped(slider, value));
             sliderFields[i] = addRenderableWidget(field);
@@ -833,10 +837,16 @@ public final class PaletteScreen extends Screen {
             int thumb = sx + Math.round(sliderValue(i) * (SLIDER_W - 1));
             g.fill(thumb - 1, sy - 2, thumb + 2, sy + SLIDER_H + 2, 0xFF000000);
             g.fill(thumb, sy - 1, thumb + 1, sy + SLIDER_H + 1, 0xFFFFFFFF);
-            // Background of the number field, which draws only its text.
+            EditBox field = sliderFields[i];
             int fx = x + FIELD_X;
-            g.fill(fx, sy - 2, x + MAIN_W, sy + 9, sliderFields[i].isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0);
-            g.fill(fx + 1, sy - 1, x + MAIN_W - 1, sy + 8, 0xFF000000);
+            int textWidth = font.width(field.getValue());
+            if (!field.isFocused()) {
+                g.text(font, SLIDER_UNITS[i], fx + textWidth, sy, Draw.TEXT, false);
+            }
+            if (field.isFocused() || field.isHovered()) {
+                int underline = Math.max(textWidth + font.width(SLIDER_UNITS[i]), 6);
+                g.fill(fx, sy + 9, fx + underline, sy + 10, field.isFocused() ? Draw.TEXT : 0xFF8B8B8B);
+            }
         }
 
         g.text(font, text("similar"), x, y + RESULTS_Y - 10, Draw.TEXT, false);
