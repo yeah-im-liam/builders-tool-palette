@@ -1,0 +1,204 @@
+// Builds every target from one source tree. Java lines between //#if and //#endif are kept or commented out with
+// //$$ depending on the target's Minecraft version and loader, for example:
+//
+//   //#if MC >= 1.21.2
+//   newCode();
+//   //#else
+//   //$$ oldCode();
+//   //#endif
+//
+// Renamed classes and members are listed in gradle/renames.txt instead. Before 1.20.5 most block methods were public,
+// so every protected override is made public for those targets (widening is always allowed).
+//
+// Conditions: MC <op> <version> (op is <, <=, >, >=, == or !=), FABRIC, NEOFORGE, FORGE, joined with !, && and ||
+// and grouped with parentheses. MC is the version the target compiles against.
+
+static int compareVersions(String a, String b) {
+    def x = a.tokenize('.')*.toInteger()
+    def y = b.tokenize('.')*.toInteger()
+    for (int i = 0; i < Math.max(x.size(), y.size()); i++) {
+        int d = (i < x.size() ? x[i] : 0) <=> (i < y.size() ? y[i] : 0)
+        if (d != 0) {
+            return d
+        }
+    }
+    return 0
+}
+
+static boolean evaluate(String condition, String mc, String loader, String where) {
+    def tokens = (condition =~ /\d+(?:\.\d+)*|[A-Za-z_]+|&&|\|\||[<>=!]=|[<>!()]/).collect { it }
+    int pos = 0
+    def peek = { pos < tokens.size() ? tokens[pos] : null }
+    def fail = { String why -> throw new GradleException("$where: $why in '$condition'") }
+    def expression
+    def atom
+    atom = {
+        def token = tokens[pos++]
+        if (token == '!') {
+            return !atom()
+        }
+        if (token == '(') {
+            boolean value = expression()
+            if (tokens[pos++] != ')') {
+                fail('missing )')
+            }
+            return value
+        }
+        if (token == 'MC') {
+            def op = tokens[pos++]
+            def version = tokens[pos++]
+            int d = compareVersions(mc, version)
+            switch (op) {
+                case '<': return d < 0
+                case '<=': return d <= 0
+                case '>': return d > 0
+                case '>=': return d >= 0
+                case '==': return d == 0
+                case '!=': return d != 0
+                default: fail("bad operator $op")
+            }
+        }
+        if (token in ['FABRIC', 'NEOFORGE', 'FORGE']) {
+            if (loader == 'common') {
+                fail("$token is not known in common code")
+            }
+            return token.toLowerCase() == loader
+        }
+        fail("unexpected $token")
+    }
+    def conjunction = {
+        boolean value = atom()
+        while (peek() == '&&') {
+            pos++
+            boolean right = atom()
+            value = value && right
+        }
+        return value
+    }
+    expression = {
+        boolean value = conjunction()
+        while (peek() == '||') {
+            pos++
+            boolean right = conjunction()
+            value = value || right
+        }
+        return value
+    }
+    boolean value = expression()
+    if (pos != tokens.size()) {
+        fail('trailing tokens')
+    }
+    return value
+}
+
+// Pairs (pattern, replacement) from gradle/renames.txt that apply to a target compiling against mc.
+static List<List<String>> renamesFor(File file, String mc) {
+    def lines = file.readLines('UTF-8').findAll { it.trim() && !it.trim().startsWith('#') }.collect { it.trim().split('\\s+') }
+    // Package paths and dotted names match anywhere (descriptors write them as Lnet/...); plain names match whole words.
+    def word = { char c -> Character.isLetterOrDigit(c) || c == '_' as char }
+    return lines.findAll { compareVersions(mc, it[0]) < 0 }
+        .sort { a, b -> compareVersions(b[0], a[0]) }
+        .collect { entry ->
+            def from = entry[1]
+            def plain = !from.contains('.') && !from.contains('/')
+            def regex = (plain && word(from.charAt(0)) ? '(?<![\\w$])' : '') + java.util.regex.Pattern.quote(from) + (plain && word(from.charAt(from.length() - 1)) ? '(?![\\w$])' : '')
+            [regex, java.util.regex.Matcher.quoteReplacement(entry[2])]
+        }
+}
+
+static String rename(String text, List<List<String>> renames) {
+    renames.each { pair -> text = text.replaceAll(pair[0], pair[1]) }
+    return text
+}
+
+static String widenOverrides(String text) {
+    return text.replaceAll(/(@Override\s*\r?\n\s*)protected /, '$1public ')
+}
+
+static String preprocess(String text, String mc, String loader, String name) {
+    def eol = text.contains('\r\n') ? '\r\n' : '\n'
+    def lines = text.split(/\r?\n/, -1)
+    def stack = []
+    boolean active = true
+    def out = new StringBuilder()
+    lines.eachWithIndex { String line, int i ->
+        def where = "$name:${i + 1}"
+        def trimmed = line.trim()
+        if (trimmed.startsWith('//#if ')) {
+            boolean value = evaluate(trimmed.substring(6), mc, loader, where)
+            stack << [parent: active, taken: value]
+            active = active && value
+        } else if (trimmed.startsWith('//#elseif ')) {
+            if (!stack) throw new GradleException("$where: //#elseif without //#if")
+            def top = stack[-1]
+            boolean value = !top.taken && evaluate(trimmed.substring(10), mc, loader, where)
+            top.taken = top.taken || value
+            active = top.parent && value
+        } else if (trimmed == '//#else') {
+            if (!stack) throw new GradleException("$where: //#else without //#if")
+            def top = stack[-1]
+            active = top.parent && !top.taken
+            top.taken = true
+        } else if (trimmed == '//#endif') {
+            if (!stack) throw new GradleException("$where: //#endif without //#if")
+            active = stack.remove(stack.size() - 1).parent
+        } else if (!trimmed.isEmpty()) {
+            def indent = line.substring(0, line.indexOf(trimmed))
+            if (active && trimmed.startsWith('//$$')) {
+                line = indent + trimmed.substring(trimmed.startsWith('//$$ ') ? 5 : 4)
+            } else if (!active && !trimmed.startsWith('//$$')) {
+                line = indent + '//$$ ' + trimmed
+            }
+        }
+        out << line
+        if (i < lines.size() - 1) {
+            out << eol
+        }
+    }
+    if (stack) {
+        throw new GradleException("$name: //#if without //#endif")
+    }
+    return out.toString()
+}
+
+def loader = project.name
+def sourceDirs = [file('src/main/java')] + rootProject.compat.split(/[ ,]+/).collect { file("src/compat/$it/java") }
+def outputDir = layout.buildDirectory.dir('preprocessed/java')
+
+def renamesFile = rootProject.file('gradle/renames.txt')
+
+def preprocessJava = tasks.register('preprocessJava') {
+    def mc = rootProject.minecraft_version
+    inputs.files(sourceDirs.findAll { it.exists() })
+    inputs.file(renamesFile)
+    inputs.property('mc', mc)
+    inputs.property('loader', loader)
+    outputs.dir(outputDir)
+    doLast {
+        def renames = renamesFor(renamesFile, mc)
+        def out = outputDir.get().asFile
+        project.delete(out)
+        sourceDirs.findAll { it.exists() }.each { dir ->
+            dir.eachFileRecurse(groovy.io.FileType.FILES) { source ->
+                def relative = dir.toPath().relativize(source.toPath()).toString()
+                def target = new File(out, relative)
+                if (target.exists()) {
+                    throw new GradleException("$relative is in more than one source folder")
+                }
+                target.parentFile.mkdirs()
+                def text = source.getText('UTF-8')
+                if (source.name.endsWith('.java')) {
+                    text = rename(preprocess(text, mc, loader, relative), renames)
+                    if (compareVersions(mc, '1.20.5') < 0) {
+                        text = widenOverrides(text)
+                    }
+                }
+                target.setText(text, 'UTF-8')
+            }
+        }
+    }
+}
+
+sourceSets.main.java.srcDirs = [outputDir]
+tasks.named('compileJava') { dependsOn preprocessJava }
+tasks.matching { it.name == 'sourcesJar' }.configureEach { dependsOn preprocessJava }

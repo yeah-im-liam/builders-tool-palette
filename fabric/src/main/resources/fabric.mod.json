@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "builders_tool_palette",
+  "version": "${version}",
+  "name": "Builder's Tool Palette",
+  "description": "A colour picker and a gradient helper for picking blocks by colour, in creative and survival. Client side only.",
+  "authors": [
+    "yeahimliam"
+  ],
+  "license": "CC-BY-NC-4.0",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "yeah.im.liam.toolpalette.fabric.ToolPaletteFabric"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${fabric_loader_min}",
+    "minecraft": "${fabric_minecraft_range}",
+    "java": ">=${java_version}",
+    "fabric-api": "*"
+  }
+}

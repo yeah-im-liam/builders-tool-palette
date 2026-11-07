@@ -1,0 +1,26 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "CC-BY-NC-4.0"
+
+[[mods]]
+modId = "builders_tool_palette"
+version = "${version}"
+displayName = "Builder's Tool Palette"
+authors = "yeahimliam"
+description = '''
+A colour picker and a gradient helper for picking blocks by colour, in creative and survival. Client side only.
+'''
+
+[[dependencies.builders_tool_palette]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neoforge_range}"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.builders_tool_palette]]
+modId = "minecraft"
+type = "required"
+versionRange = "${neoforge_minecraft_range}"
+ordering = "NONE"
+side = "CLIENT"

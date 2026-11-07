@@ -1,0 +1,78 @@
+plugins {
+    id 'dev.architectury.loom' version '1.17.493' apply false
+    id 'dev.architectury.loom-no-remap' version '1.17.493' apply false
+    id 'architectury-plugin' version '3.5.170'
+    id 'com.gradleup.shadow' version '9.4.3' apply false
+}
+
+def target = findProperty('target') ?: rootProject.default_target
+def targetFile = file("targets/${target}.properties")
+if (!targetFile.exists()) {
+    throw new GradleException("Unknown target ${target}: missing ${targetFile}")
+}
+def targetProperties = new Properties()
+targetFile.withInputStream { targetProperties.load(it) }
+targetProperties.each { key, value -> rootProject.ext.set(key.toString(), value.toString()) }
+rootProject.ext.target = target
+rootProject.ext.obfuscated = rootProject.obfuscated.toBoolean()
+
+architectury {
+    minecraft = rootProject.minecraft_version
+}
+
+allprojects {
+    group = rootProject.maven_group
+    version = rootProject.mod_version
+}
+
+subprojects {
+    if (project.name == 'neoforge') {
+        project.ext.set('loom.platform', 'neoforge')
+    }
+    // Minecraft 26.1 and later ship without obfuscation, so their jars are not remapped.
+    apply plugin: rootProject.obfuscated ? 'dev.architectury.loom' : 'dev.architectury.loom-no-remap'
+    apply plugin: 'architectury-plugin'
+
+    base {
+        archivesName = "$rootProject.archives_name-$project.name-mc$rootProject.minecraft_range"
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        minecraft "com.mojang:minecraft:$rootProject.minecraft_version"
+        if (rootProject.obfuscated) {
+            mappings loom.officialMojangMappings()
+        }
+        compileOnly 'org.jspecify:jspecify:1.0.0'
+    }
+
+    java {
+        withSourcesJar()
+    }
+
+    // Code that differs between targets lives in src/compat/<name>, for each name in the target's compat list.
+    rootProject.compat.split(/[ ,]+/).each { name ->
+        sourceSets.main.resources.srcDir "src/compat/$name/resources"
+    }
+    apply from: rootProject.file('gradle/preprocess.gradle')
+
+    if (project.name != 'common') {
+        tasks.matching { it.name == 'shadowJar' }.configureEach {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        it.options.encoding = 'UTF-8'
+        it.options.release = rootProject.java_version as int
+    }
+
+    tasks.withType(JavaExec).configureEach {
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(rootProject.java_version as int)
+        }
+    }
+}
