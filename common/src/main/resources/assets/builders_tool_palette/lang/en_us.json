@@ -31,6 +31,5 @@
   "builders_tool_palette.hotbar": "Hotbar",
   "builders_tool_palette.survival_note": "You cannot pick block in survival mode",
   "builders_tool_palette.pack_colors": "Texture Pack Colors",
-  "builders_tool_palette.pack_colors.on": "On: block colors come from your texture packs",
-  "builders_tool_palette.pack_colors.off": "Off: block colors come from the default textures"
+  "builders_tool_palette.pack_colors.description": "Uses block colors from your texture packs"
 }

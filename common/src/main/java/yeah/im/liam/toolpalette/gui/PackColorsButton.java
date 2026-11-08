@@ -17,18 +17,10 @@ final class PackColorsButton extends Button {
     private final BooleanSupplier on;
 
     PackColorsButton(int x, int y, BooleanSupplier on, Runnable toggle) {
-        super(x, y, WIDTH, 20, Component.translatable("builders_tool_palette.pack_colors"), button -> {
-            toggle.run();
-            ((PackColorsButton) button).updateTooltip();
-        }, narration -> narration.get());
+        super(x, y, WIDTH, 20, Component.translatable("builders_tool_palette.pack_colors"), button -> toggle.run(), narration -> narration.get());
         this.on = on;
-        updateTooltip();
-    }
-
-    private void updateTooltip() {
-        String state = on.getAsBoolean() ? "on" : "off";
         setTooltip(Tooltip.create(Component.empty().append(getMessage()).append("\n")
-            .append(Component.translatable("builders_tool_palette.pack_colors." + state).withStyle(ChatFormatting.GRAY))));
+            .append(Component.translatable("builders_tool_palette.pack_colors.description").withStyle(ChatFormatting.GRAY))));
     }
 
     @Override
