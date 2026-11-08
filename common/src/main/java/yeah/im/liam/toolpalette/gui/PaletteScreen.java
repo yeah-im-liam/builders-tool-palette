@@ -32,20 +32,22 @@ import yeah.im.liam.toolpalette.color.PaletteIndex;
 public final class PaletteScreen extends Screen {
     private static final int PAD = 7;
     private static final int SLOT = 18;
-    private static final int MAIN_W = 232;
+    private static final int MAIN_W = 234;
     private static final int MAIN_H = 136;
     private static final int TAB_H = 20;
+    /** The narrowest the F S O T buttons get; they widen to fill the tab row to the right edge. */
     private static final int FILTER_W = 11;
     private static final int HEIGHT = PAD + TAB_H + 4 + MAIN_H + 4 + SLOT + PAD;
 
-    private static final int SV = 80;
-    private static final int HUE_X = 84;
+    /** The colour square's size; with the hue bar it ends level with the bottom slider. */
+    private static final int SV = 85;
+    private static final int HUE_X = 89;
     private static final int HUE_W = 10;
-    private static final int RIGHT_X = 100;
-    private static final int SWATCH_X = 122;
-    private static final int SWATCH_W = 50;
-    private static final int HEX_X = 176;
-    private static final int SLIDER_X = 108;
+    private static final int RIGHT_X = 105;
+    private static final int SWATCH_X = 127;
+    private static final int SWATCH_W = 48;
+    private static final int HEX_X = 179;
+    private static final int SLIDER_X = 113;
     private static final int SLIDER_W = 94;
     private static final int SLIDER_H = 7;
     private static final int SLIDER_Y = 24;
@@ -140,7 +142,8 @@ public final class PaletteScreen extends Screen {
         hotbarX = mainX + GRADIENT_X;
         hotbarY = top + HEIGHT - PAD - SLOT;
 
-        // The tab row, left to right: both tabs as wide as their names, the texture pack button, then the four filters.
+        // The tab row, left to right: both tabs as wide as their names, the texture pack button, then the four filters
+        // widened to end at the right edge, level with the hex box and the numbers below.
         int filtersWidth = 4 * FILTER_W + 3;
         Component colorLabel = text("tab.color_picker");
         Component gradientLabel = text("tab.gradient_helper");
@@ -159,10 +162,13 @@ public final class PaletteScreen extends Screen {
         int packX = mainX + colorWidth + 2 + gradientWidth + 2;
         addRenderableWidget(new PackColorsButton(packX, top + PAD, () -> state.packColors, this::togglePackColors));
         int filtersX = packX + PackColorsButton.WIDTH + 2;
+        int filterSpace = mainX + MAIN_W - filtersX;
+        int filterWidth = Math.max(FILTER_W, (filterSpace - 3) / 4);
+        filtersX = mainX + MAIN_W - (4 * filterWidth + 3);
         String[] filters = {"full_cube", "solid", "opaque", "same_texture"};
         for (int i = 0; i < 4; i++) {
             int index = i;
-            filterButtons[i] = new LetterButton(filtersX + i * (FILTER_W + 1), top + PAD, FILTER_W, TAB_H, b -> toggleFilter(index));
+            filterButtons[i] = new LetterButton(filtersX + i * (filterWidth + 1), top + PAD, filterWidth, TAB_H, b -> toggleFilter(index));
             filterButtons[i].setTooltip(Tooltip.create(Component.empty().append(text("filter." + filters[i])).append("\n")
                 .append(text("filter." + filters[i] + ".description").withStyle(ChatFormatting.GRAY))));
             addRenderableWidget(filterButtons[i]);
