@@ -8,8 +8,8 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 
 /**
- * Switches block colours between the default textures and the applied texture packs: the game's button with the
- * pack_colors_on or pack_colors_off picture drawn over it.
+ * Switches block colours between the default textures and the applied texture packs. Off, it is the game's button; on,
+ * the mod's pack_colors_on_button. The pack_colors_on or pack_colors_off picture is drawn over it.
  */
 final class PackColorsButton extends Button {
     static final int WIDTH = 20;
@@ -33,7 +33,12 @@ final class PackColorsButton extends Button {
 
     @Override
     protected void extractContents(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
-        extractDefaultSprite(g);
-        Textures.draw(g, on.getAsBoolean() ? Textures.PACK_COLORS_ON : Textures.PACK_COLORS_OFF, getX(), getY(), width, height);
+        if (on.getAsBoolean()) {
+            Textures.draw(g, isHoveredOrFocused() ? Textures.PACK_COLORS_ON_BUTTON_HOVERED : Textures.PACK_COLORS_ON_BUTTON, getX(), getY(), width, height);
+            Textures.draw(g, Textures.PACK_COLORS_ON, getX(), getY(), width, height);
+        } else {
+            extractDefaultSprite(g);
+            Textures.draw(g, Textures.PACK_COLORS_OFF, getX(), getY(), width, height);
+        }
     }
 }
