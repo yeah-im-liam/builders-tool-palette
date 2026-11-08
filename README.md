@@ -33,7 +33,7 @@ The F, S, O and T buttons narrow the suggestions in both tools and the block lis
 
 ## Texture pack colors
 
-The button with the four-color square, next to the Gradient Helper tab, switches where block colors come from. Off (the default), colors come from the default textures; on, they come from your applied texture packs, so suggestions match what you see in game.
+The button next to the Gradient Helper tab switches where block colors come from. Off (the default), colors come from the default textures; on, they come from your applied texture packs, so suggestions match what you see in game.
 
 ## Taking blocks
 
@@ -54,7 +54,7 @@ The mod's images are in `assets/builders_tool_palette/textures/gui/`, and resour
 | --- | --- | --- |
 | `color_picker_button.png`, `color_picker_button_hovered.png` | any | Inventory button that opens the Color Picker, as big as its image |
 | `gradient_helper_button.png`, `gradient_helper_button_hovered.png` | any | Inventory button that opens the Gradient Helper, as big as its image |
-| `pack_colors_off.png`, `pack_colors_off_hovered.png`, `pack_colors_on.png`, `pack_colors_on_hovered.png` | 20×20 | Texture pack colors button |
+| `pack_colors_off.png`, `pack_colors_on.png` | 20×20 | Picture on the Texture pack colors button, drawn over the game's own button (leave it see-through where the button should show) |
 | `menu_frame.png` | any | Frame of the menu: the corners are drawn as they are, the edges and the middle repeat to fill any size |
 
 `menu_frame.png.mcmeta` sets how thick the frame's border is, in the same form as the game's own stretchable GUI images: `"border": 4`, or `"border": {"left": 4, "top": 4, "right": 4, "bottom": 4}`. For a higher-resolution image, add `"width"` and `"height"` with its size in GUI pixels; the inventory buttons take the same `.mcmeta` for that.

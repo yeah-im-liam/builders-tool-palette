@@ -3,25 +3,25 @@ package yeah.im.liam.toolpalette.gui;
 import java.util.function.BooleanSupplier;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.narration.NarratedElementType;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 
-/** Switches block colours between the default textures and the applied texture packs. */
-final class PackColorsButton extends AbstractWidget {
+/**
+ * Switches block colours between the default textures and the applied texture packs: the game's button with the
+ * pack_colors_on or pack_colors_off picture drawn over it.
+ */
+final class PackColorsButton extends Button {
     static final int WIDTH = 20;
 
     private final BooleanSupplier on;
-    private final Runnable toggle;
 
     PackColorsButton(int x, int y, BooleanSupplier on, Runnable toggle) {
-        super(x, y, WIDTH, 20, Component.translatable("builders_tool_palette.pack_colors"));
+        super(x, y, WIDTH, 20, Component.translatable("builders_tool_palette.pack_colors"), button -> {
+            toggle.run();
+            ((PackColorsButton) button).updateTooltip();
+        }, narration -> narration.get());
         this.on = on;
-        this.toggle = toggle;
         updateTooltip();
     }
 
@@ -32,22 +32,8 @@ final class PackColorsButton extends AbstractWidget {
     }
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
-        boolean hovered = isHoveredOrFocused();
-        Identifier texture = on.getAsBoolean()
-            ? hovered ? Textures.PACK_COLORS_ON_HOVERED : Textures.PACK_COLORS_ON
-            : hovered ? Textures.PACK_COLORS_OFF_HOVERED : Textures.PACK_COLORS_OFF;
-        Textures.draw(g, texture, getX(), getY(), width, height);
-    }
-
-    @Override
-    public void onClick(MouseButtonEvent event, boolean doubleClick) {
-        toggle.run();
-        updateTooltip();
-    }
-
-    @Override
-    protected void updateWidgetNarration(NarrationElementOutput output) {
-        output.add(NarratedElementType.TITLE, getMessage());
+    protected void extractContents(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+        extractDefaultSprite(g);
+        Textures.draw(g, on.getAsBoolean() ? Textures.PACK_COLORS_ON : Textures.PACK_COLORS_OFF, getX(), getY(), width, height);
     }
 }
