@@ -35,10 +35,10 @@ final class PackColorsButton extends Button {
     protected void extractContents(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         if (on.getAsBoolean()) {
             Textures.frame(g, isHoveredOrFocused() ? Textures.SELECTED_BUTTON_HIGHLIGHTED : Textures.SELECTED_BUTTON, getX(), getY(), width, height);
+            Textures.draw(g, Textures.PACK_COLORS_ON, getX(), getY(), width, height);
         } else {
             extractDefaultSprite(g);
+            Textures.draw(g, Textures.PACK_COLORS_OFF, getX(), getY(), width, height);
         }
-        // For now both states show the off picture; pack_colors_on.png is kept for later.
-        Textures.draw(g, Textures.PACK_COLORS_OFF, getX(), getY(), width, height);
     }
 }
