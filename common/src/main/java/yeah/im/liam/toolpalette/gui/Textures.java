@@ -29,8 +29,8 @@ final class Textures {
     static final Identifier GRADIENT_HELPER_BUTTON_HOVERED = id("gradient_helper_button_hovered");
     static final Identifier PACK_COLORS_OFF = id("pack_colors_off");
     static final Identifier PACK_COLORS_ON = id("pack_colors_on");
-    static final Identifier PACK_COLORS_ON_BUTTON = id("pack_colors_on_button");
-    static final Identifier PACK_COLORS_ON_BUTTON_HOVERED = id("pack_colors_on_button_hovered");
+    static final Identifier SELECTED_BUTTON = id("selected_button");
+    static final Identifier SELECTED_BUTTON_HIGHLIGHTED = id("selected_button_highlighted");
     static final Identifier MENU_FRAME = id("menu_frame");
 
     /**

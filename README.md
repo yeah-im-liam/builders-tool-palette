@@ -55,7 +55,7 @@ The mod's images are in `assets/builders_tool_palette/textures/gui/`, and resour
 | `color_picker_button.png`, `color_picker_button_hovered.png` | any | Inventory button that opens the Color Picker, as big as its image |
 | `gradient_helper_button.png`, `gradient_helper_button_hovered.png` | any | Inventory button that opens the Gradient Helper, as big as its image |
 | `pack_colors_off.png`, `pack_colors_on.png` | 20×20 | Picture on the Texture pack colors button (leave it see-through where the button should show) |
-| `pack_colors_on_button.png`, `pack_colors_on_button_hovered.png` | 20×20 | The button under that picture while it is on; while off, it is the game's own button |
+| `selected_button.png`, `selected_button_highlighted.png` | 200×20 | The button under that picture while it is on (highlighted while hovered); while off, it is the game's own button. Like the game's buttons, the 3-pixel border (set in the `.mcmeta`) stays as drawn and the rest repeats to fit |
 | `menu_frame.png` | any | Frame of the menu: the corners are drawn as they are, the edges and the middle repeat to fill any size |
 
 `menu_frame.png.mcmeta` sets how thick the frame's border is, in the same form as the game's own stretchable GUI images: `"border": 4`, or `"border": {"left": 4, "top": 4, "right": 4, "bottom": 4}`. For a higher-resolution image, add `"width"` and `"height"` with its size in GUI pixels; the inventory buttons take the same `.mcmeta` for that.
